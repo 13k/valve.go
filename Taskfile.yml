@@ -1,0 +1,41 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: "3"
+
+vars:
+  MODULES:
+    - kv1
+    - steamlib
+
+includes:
+  kv1:
+    taskfile: ./kv1/Taskfile.yml
+    dir: ./kv1
+  steamlib:
+    taskfile: ./steamlib/Taskfile.yml
+    dir: ./steamlib
+
+tasks:
+  default:
+    desc: Run all modules tasks
+    cmds:
+      - for: { var: MODULES }
+        task: "{{ .ITEM }}:default"
+
+  test:
+    desc: Run all modules tests
+    cmds:
+      - for: { var: MODULES }
+        task: "{{ .ITEM }}:test"
+
+  lint:
+    desc: Lint all modules
+    cmds:
+      - for: { var: MODULES }
+        task: "{{ .ITEM }}:lint"
+
+  build:
+    desc: Build all modules
+    cmds:
+      - for: { var: MODULES }
+        task: "{{ .ITEM }}:build"

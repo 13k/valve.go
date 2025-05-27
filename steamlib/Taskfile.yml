@@ -1,0 +1,26 @@
+# yaml-language-server: $schema=https://taskfile.dev/schema.json
+
+version: "3"
+
+vars:
+  MOD: steamlib
+
+tasks:
+  default:
+    desc: Run all tasks
+    cmds:
+      - task: test
+      - task: lint
+      - task: build
+
+  test:
+    desc: Run tests
+    cmd: go test "./..." {{ .CLI_ARGS }}
+
+  lint:
+    desc: Run linter
+    cmd: golangci-lint run "./..." {{ .CLI_ARGS }}
+
+  build:
+    desc: Build
+    cmd: go build "./..." {{ .CLI_ARGS }}
