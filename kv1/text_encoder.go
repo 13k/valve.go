@@ -49,17 +49,18 @@ func (e *TextEncoder) encode(kv *KeyValue, level int) error {
 
 	switch ty {
 	case TypeObject:
-		err = e.encodeObject(kv, indent, level)
+		{
+			err = e.encodeObject(kv, indent, level)
+		}
 	case
-		TypeString,
-		TypeInt32,
+		TypeString, TypeWString,
+		TypeInt32, TypeColor, TypePointer,
 		TypeInt64,
 		TypeUint64,
-		TypeFloat32,
-		TypeColor,
-		TypePointer,
-		TypeWString:
-		err = e.encodeValue(kv)
+		TypeFloat32:
+		{
+			err = e.encodeValue(kv)
+		}
 	case TypeInvalid, TypeEnd:
 		panic("unreachable")
 	}
@@ -122,7 +123,7 @@ func (e *TextEncoder) encodeObject(kv *KeyValue, indent string, level int) error
 }
 
 func (e *TextEncoder) encodeValue(kv *KeyValue) error {
-	s, err := kv.Format()
+	s, err := kv.ToString()
 
 	if err != nil {
 		return textEncError(err, kv)

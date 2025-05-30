@@ -30,18 +30,18 @@ func (s *BinaryEncoderSuite) TestEncode() {
 	testCases := []binEncTestCase{
 		{
 			Name:    "type_unsupported_end",
-			Subject: kv1.MustNewKeyValue(kv1.TypeEnd, "", "", nil),
-			Err:     "type is not supported",
+			Subject: kv1.NewKeyValueEnd(),
+			Err:     `type is not supported`,
 		},
 		{
 			Name:    "type_unsupported_wstring",
-			Subject: kv1.MustNewKeyValue(kv1.TypeWString, "foo", "", nil),
-			Err:     "type is not supported",
+			Subject: kv1.NewKeyValueWString("foo", "", nil),
+			Err:     `type is not supported`,
 		},
 		{
 			Name:    "type_unsupported_invalid",
-			Subject: kv1.MustNewKeyValue(kv1.TypeInvalid, "foo", "", nil),
-			Err:     "type is not supported",
+			Subject: kv1.NewKeyValueEmpty(),
+			Err:     `type is not supported`,
 		},
 		{
 			Name:    "string_ok",
@@ -99,7 +99,7 @@ func (s *BinaryEncoderSuite) TestEncode() {
 		},
 		{
 			Name:    "object_ok",
-			Subject: kv1.NewKeyValueRoot("K").AddString("s", "S"),
+			Subject: kv1.NewKeyValueObjectRoot("K").AddString("s", "S"),
 			Expected: []byte{
 				kv1.TypeObject.Byte(), // type
 				'K', 0x00,             // key
@@ -111,7 +111,7 @@ func (s *BinaryEncoderSuite) TestEncode() {
 		},
 		{
 			Name: "bindata1",
-			Subject: kv1.NewKeyValueRoot("RP").
+			Subject: kv1.NewKeyValueObjectRoot("RP").
 				AddString("status", "#DOTA_RP_LEAGUE_MATCH_PLAYING_AS").
 				AddString("steam_display", "#DOTA_RP_LEAGUE_MATCH_PLAYING_AS").
 				AddString("num_params", "3").
@@ -125,7 +125,7 @@ func (s *BinaryEncoderSuite) TestEncode() {
 		},
 		{
 			Name: "bindata2",
-			Subject: kv1.NewKeyValueRoot("RP").
+			Subject: kv1.NewKeyValueObjectRoot("RP").
 				AddString("status", "#DOTA_RP_PLAYING_AS").
 				AddString("steam_display", "#DOTA_RP_PLAYING_AS").
 				AddString("num_params", "3").
@@ -139,7 +139,7 @@ func (s *BinaryEncoderSuite) TestEncode() {
 		},
 		{
 			Name: "bindata3",
-			Subject: kv1.NewKeyValueRoot("RP").
+			Subject: kv1.NewKeyValueObjectRoot("RP").
 				AddString("status", "#DOTA_RP_PLAYING_AS").
 				AddString("steam_display", "#DOTA_RP_PLAYING_AS").
 				AddString("num_params", "3").
@@ -156,7 +156,7 @@ func (s *BinaryEncoderSuite) TestEncode() {
 		},
 		{
 			Name: "bindata4",
-			Subject: kv1.NewKeyValueRoot("RP").
+			Subject: kv1.NewKeyValueObjectRoot("RP").
 				AddString("status", "#DOTA_RP_HERO_SELECTION").
 				AddString("steam_display", "#DOTA_RP_HERO_SELECTION").
 				AddString("num_params", "1").
@@ -172,11 +172,11 @@ func (s *BinaryEncoderSuite) TestEncode() {
 	}
 
 	for _, testCase := range testCases {
-		s.subtestEncode(testCase)
+		s.testEncode(testCase)
 	}
 }
 
-func (s *BinaryEncoderSuite) subtestEncode(testCase binEncTestCase) {
+func (s *BinaryEncoderSuite) testEncode(testCase binEncTestCase) {
 	s.Run(testCase.Name, func() {
 		require := s.Require()
 		b := &bytes.Buffer{}

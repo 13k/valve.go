@@ -7,6 +7,9 @@ import (
 
 var (
 	ErrUnsupportedType = errors.New("type is not supported")
+	ErrIntegerOverflow = errors.New("integer overflow")
+	ErrFloatOverflow   = errors.New("float overflow")
+	ErrFloatInvalid    = errors.New("invalid float value")
 )
 
 ///////////////////////////////// general
@@ -35,24 +38,66 @@ func kvError(msg string) error {
 	return &KeyValueError{msg: msg}
 }
 
+func kvKeyError(ty Type, key string) error {
+	return kvError(fmt.Sprintf("invalid key %q for type %s", key, ty))
+}
+
+func kvValueError(ty Type, value any) error {
+	return kvError(fmt.Sprintf("cannot set value of type %s with value %v (%T)", ty, value, value))
+}
+
 func kvGetError(kv *KeyValue, ty Type) error {
 	return kvError(fmt.Sprintf("cannot get value of type %s as %s", kv.Type(), ty))
 }
 
-func kvValueError(ty Type, value any) error {
-	return kvError(fmt.Sprintf("cannot set value of type %s with value %+v (%T)", ty, value, value))
-}
-
-func kvFormatTypeError(ty Type) error {
-	return kvError(fmt.Sprintf("cannot format node of type %s", ty))
+func kvFormatTypeError(kv *KeyValue) error {
+	return kvError(fmt.Sprintf("cannot format type %s", kv.Type()))
 }
 
 func kvFormatValueError(value any) error {
 	return kvError(fmt.Sprintf("cannot format value %v (%T)", value, value))
 }
 
-func kvMapTypeError(ty Type) error {
-	return kvError(fmt.Sprintf("cannot convert node type %s to map", ty))
+func kvMapTypeError(kv *KeyValue) error {
+	return kvError(fmt.Sprintf("cannot convert type %s to map", kv.Type()))
+}
+
+func kvConvertTypeError[T any](kv *KeyValue) error {
+	return kvError(fmt.Sprintf("cannot convert type %s to %T", kv.Type(), *new(T)))
+}
+
+var _ error = (*KeyValueConvertError)(nil)
+
+type KeyValueConvertError struct {
+	err   error
+	kv    *KeyValue
+	value any
+}
+
+func (err *KeyValueConvertError) Error() string {
+	return fmt.Sprintf(
+		"failed to convert value %v (%T) to %T: %s",
+		err.kv.Value(),
+		err.kv.Value(),
+		err.value,
+		err.err,
+	)
+}
+
+func (err *KeyValueConvertError) Unwrap() error {
+	return err.err
+}
+
+func kvConvertError[T any](kv *KeyValue, err error) error {
+	if err == nil {
+		return nil
+	}
+
+	return &KeyValueConvertError{
+		err:   err,
+		kv:    kv,
+		value: *new(T),
+	}
 }
 
 ///////////////////////////////// Binary encoding/decoding

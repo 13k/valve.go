@@ -70,7 +70,7 @@ func (s *TextDecoderSuite) TestDecode() {
 		{
 			Name:  "valid",
 			Input: s.MustOpenFixture("sample.valid.txt"),
-			Expected: kv1.NewKeyValueRoot("root").
+			Expected: kv1.NewKeyValueObjectRoot("root").
 				AddString("key", "value").
 				AddString("qkey1", "value").
 				AddString("qkey2", "qvalue").
@@ -105,7 +105,7 @@ func (s *TextDecoderSuite) TestDecode() {
 		{
 			Name:  "addoninfo",
 			Input: s.MustOpenFixture("addoninfo.txt"),
-			Expected: kv1.NewKeyValueRoot("AddonInfo").
+			Expected: kv1.NewKeyValueObjectRoot("AddonInfo").
 				AddChild(
 					kv1.NewKeyValueObject("siege02", nil).
 						AddString("MaxPlayers", "5"),
@@ -204,11 +204,11 @@ func (s *TextDecoderSuite) TestDecode() {
 	}
 
 	for _, testCase := range testCases {
-		s.subtestDecode(testCase)
+		s.testDecode(testCase)
 	}
 }
 
-func (s *TextDecoderSuite) subtestDecode(testCase textDecTestCase) {
+func (s *TextDecoderSuite) testDecode(testCase textDecTestCase) {
 	s.Run(testCase.Name, func() {
 		require := s.Require()
 		input := testCase.Input

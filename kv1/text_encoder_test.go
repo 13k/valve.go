@@ -30,12 +30,12 @@ func (s *TextEncoderSuite) TestEncode() {
 	testCases := []textEncTestCase{
 		{
 			Name:    "type_unsupported_end",
-			Subject: kv1.MustNewKeyValue(kv1.TypeEnd, "eof", "", nil),
+			Subject: kv1.NewKeyValueEnd(),
 			Err:     `type is not supported`,
 		},
 		{
 			Name:    "type_unsupported_invalid",
-			Subject: kv1.MustNewKeyValue(kv1.TypeInvalid, "foo", "", nil),
+			Subject: kv1.NewKeyValueEmpty(),
 			Err:     `type is not supported`,
 		},
 		{
@@ -75,7 +75,7 @@ func (s *TextEncoderSuite) TestEncode() {
 		},
 		{
 			Name:    "object_ok",
-			Subject: kv1.NewKeyValueRoot("K").AddString("s", "S"),
+			Subject: kv1.NewKeyValueObjectRoot("K").AddString("s", "S"),
 			Expected: []byte(
 				`"K" {
   "s" "S"
@@ -85,7 +85,7 @@ func (s *TextEncoderSuite) TestEncode() {
 		},
 		{
 			Name: "textdata1",
-			Subject: kv1.NewKeyValueRoot("RP").
+			Subject: kv1.NewKeyValueObjectRoot("RP").
 				AddString("status", "#DOTA_RP_LEAGUE_MATCH_PLAYING_AS").
 				AddString("steam_display", "#DOTA_RP_LEAGUE_MATCH_PLAYING_AS").
 				AddString("num_params", "3").
@@ -99,7 +99,7 @@ func (s *TextEncoderSuite) TestEncode() {
 		},
 		{
 			Name: "textdata2",
-			Subject: kv1.NewKeyValueRoot("RP").
+			Subject: kv1.NewKeyValueObjectRoot("RP").
 				AddString("status", "#DOTA_RP_PLAYING_AS").
 				AddString("steam_display", "#DOTA_RP_PLAYING_AS").
 				AddString("num_params", "3").
@@ -113,7 +113,7 @@ func (s *TextEncoderSuite) TestEncode() {
 		},
 		{
 			Name: "textdata3",
-			Subject: kv1.NewKeyValueRoot("RP").
+			Subject: kv1.NewKeyValueObjectRoot("RP").
 				AddString("status", "#DOTA_RP_PLAYING_AS").
 				AddString("steam_display", "#DOTA_RP_PLAYING_AS").
 				AddString("num_params", "3").
@@ -130,7 +130,7 @@ func (s *TextEncoderSuite) TestEncode() {
 		},
 		{
 			Name: "textdata4",
-			Subject: kv1.NewKeyValueRoot("RP").
+			Subject: kv1.NewKeyValueObjectRoot("RP").
 				AddString("status", "#DOTA_RP_HERO_SELECTION").
 				AddString("steam_display", "#DOTA_RP_HERO_SELECTION").
 				AddString("num_params", "1").
@@ -146,11 +146,11 @@ func (s *TextEncoderSuite) TestEncode() {
 	}
 
 	for _, testCase := range testCases {
-		s.subtestEncode(testCase)
+		s.testEncode(testCase)
 	}
 }
 
-func (s *TextEncoderSuite) subtestEncode(testCase textEncTestCase) {
+func (s *TextEncoderSuite) testEncode(testCase textEncTestCase) {
 	s.Run(testCase.Name, func() {
 		require := s.Require()
 		b := &bytes.Buffer{}

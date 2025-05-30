@@ -103,7 +103,7 @@ func (d *BinaryDecoder) readType() (Type, error) {
 		return TypeInvalid, fmt.Errorf("failed to read node type: %w", err)
 	}
 
-	return TypeFromByte(b), nil
+	return NewType(b), nil
 }
 
 func (d *BinaryDecoder) readKey() (string, error) {

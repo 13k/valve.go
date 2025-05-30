@@ -42,7 +42,7 @@ func (s *BinaryDecoderSuite) TestDecode() {
 			Data: []byte{
 				kv1.TypeEnd.Byte(), // type
 			},
-			Expected: kv1.MustNewKeyValue(kv1.TypeEnd, "", int32(0), nil),
+			Expected: kv1.NewKeyValueEnd(),
 		},
 		{
 			Name: "string_no_key",
@@ -84,7 +84,7 @@ func (s *BinaryDecoderSuite) TestDecode() {
 				'K', 0x00, // key
 				'V', 0x00, // string value
 			},
-			Expected: kv1.MustNewKeyValue(kv1.TypeString, "K", "V", nil),
+			Expected: kv1.NewKeyValueString("K", "V", nil),
 		},
 		{
 			Name: "int32_incomplete",
@@ -102,7 +102,7 @@ func (s *BinaryDecoderSuite) TestDecode() {
 				'K', 0x00,            // key
 				0x01, 0x00, 0x00, 0x00, // int32 value
 			},
-			Expected: kv1.MustNewKeyValue(kv1.TypeInt32, "K", int32(1), nil),
+			Expected: kv1.NewKeyValueInt32("K", 1, nil),
 		},
 		{
 			Name: "object_incomplete",
@@ -125,12 +125,12 @@ func (s *BinaryDecoderSuite) TestDecode() {
 				'S', 0x00, // child string value
 				kv1.TypeEnd.Byte(), // end
 			},
-			Expected: kv1.NewKeyValueRoot("K").AddString("s", "S"),
+			Expected: kv1.NewKeyValueObjectRoot("K").AddString("s", "S"),
 		},
 		{
 			Name: "bindata1",
 			Data: binData1,
-			Expected: kv1.NewKeyValueRoot("RP").
+			Expected: kv1.NewKeyValueObjectRoot("RP").
 				AddString("status", "#DOTA_RP_LEAGUE_MATCH_PLAYING_AS").
 				AddString("steam_display", "#DOTA_RP_LEAGUE_MATCH_PLAYING_AS").
 				AddString("num_params", "3").
@@ -144,7 +144,7 @@ func (s *BinaryDecoderSuite) TestDecode() {
 		{
 			Name: "bindata2",
 			Data: binData2,
-			Expected: kv1.NewKeyValueRoot("RP").
+			Expected: kv1.NewKeyValueObjectRoot("RP").
 				AddString("status", "#DOTA_RP_PLAYING_AS").
 				AddString("steam_display", "#DOTA_RP_PLAYING_AS").
 				AddString("num_params", "3").
@@ -158,7 +158,7 @@ func (s *BinaryDecoderSuite) TestDecode() {
 		{
 			Name: "bindata3",
 			Data: binData3,
-			Expected: kv1.NewKeyValueRoot("RP").
+			Expected: kv1.NewKeyValueObjectRoot("RP").
 				AddString("status", "#DOTA_RP_PLAYING_AS").
 				AddString("steam_display", "#DOTA_RP_PLAYING_AS").
 				AddString("num_params", "3").
@@ -175,7 +175,7 @@ func (s *BinaryDecoderSuite) TestDecode() {
 		{
 			Name: "bindata4",
 			Data: binData4,
-			Expected: kv1.NewKeyValueRoot("RP").
+			Expected: kv1.NewKeyValueObjectRoot("RP").
 				AddString("status", "#DOTA_RP_HERO_SELECTION").
 				AddString("steam_display", "#DOTA_RP_HERO_SELECTION").
 				AddString("num_params", "1").
@@ -190,11 +190,11 @@ func (s *BinaryDecoderSuite) TestDecode() {
 	}
 
 	for _, testCase := range testCases {
-		s.subtestDecode(testCase)
+		s.testDecode(testCase)
 	}
 }
 
-func (s *BinaryDecoderSuite) subtestDecode(testCase binDecTestCase) {
+func (s *BinaryDecoderSuite) testDecode(testCase binDecTestCase) {
 	s.Run(testCase.Name, func() {
 		require := s.Require()
 		actual := kv1.NewKeyValueEmpty()

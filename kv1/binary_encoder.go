@@ -43,16 +43,16 @@ func (e *BinaryEncoder) Encode(kv *KeyValue) error { //nolint:cyclop
 		err = e.encodeString(kv)
 	case TypeInt32:
 		err = e.encodeInt32(kv)
+	case TypeColor:
+		err = e.encodeColor(kv)
+	case TypePointer:
+		err = e.encodePointer(kv)
 	case TypeInt64:
 		err = e.encodeInt64(kv)
 	case TypeUint64:
 		err = e.encodeUint64(kv)
 	case TypeFloat32:
 		err = e.encodeFloat32(kv)
-	case TypeColor:
-		err = e.encodeColor(kv)
-	case TypePointer:
-		err = e.encodePointer(kv)
 	case TypeEnd, TypeInvalid, TypeWString:
 		panic("unreachable")
 	}
