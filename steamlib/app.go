@@ -1,84 +1,136 @@
 package steamlib
 
 import (
+	"encoding"
+	"encoding/binary"
+	"encoding/json"
 	"fmt"
-	"path/filepath"
 	"strconv"
 )
 
-//nolint:gochecknoglobals
 var (
-	appManifestRelPathFmt      = filepath.Join("steamapps", "appmanifest_%d.acf")
-	appRelInstallDirFromFolder = "common"
+	_ fmt.Stringer               = (*AppID)(nil)
+	_ encoding.BinaryMarshaler   = (*AppID)(nil)
+	_ encoding.BinaryUnmarshaler = (*AppID)(nil)
+	_ encoding.TextMarshaler     = (*AppID)(nil)
+	_ encoding.TextUnmarshaler   = (*AppID)(nil)
+	_ json.Marshaler             = (*AppID)(nil)
+	_ json.Unmarshaler           = (*AppID)(nil)
 )
 
-// AppManifest represents a parsed `appmanifest_*.acf` file inside a library folder.
-type AppManifest struct {
-	// ID
-	AppID AppID
-	// Name
-	Name string
-	// Install dir
-	InstallDir string
-	// Absolute install dir
-	AbsInstallDir string
-	// Size (in bytes)
-	Size uint64
-}
+// AppID represents an Steam application ID.
+type AppID uint32
 
-// NewAppManifest parses an AppManifest in a given `folder` for the given `appID`.
-func NewAppManifest(folder *LibraryFolder, appID AppID) (*AppManifest, error) {
-	filename := fmt.Sprintf(appManifestRelPathFmt, appID)
-	path := filepath.Join(folder.Path, filename)
-
-	return ParseAppManifest(path)
-}
-
-// ParseAppManifest parses an app manifest at the given `path`.
-func ParseAppManifest(path string) (*AppManifest, error) {
-	kvApp, err := kv1UnmarshalFile[appManifestKv](path)
+// ParseAppID parses a string into an AppID.
+//
+// Returns `*AppIDParseError` on error.
+func ParseAppID(s string) (AppID, error) {
+	appID, err := strconv.ParseUint(s, 10, 32)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse AppManifest: %w", err)
+		return 0, &AppIDParseError{value: s, err: err}
 	}
 
-	return appManifestFromKv(path, kvApp)
+	return AppID(appID), nil
 }
 
-type appManifestKv struct {
-	State appStateKv `mapstructure:"AppState"`
+// Uint32 returns the id as uint32.
+func (id *AppID) Uint32() uint32 {
+	return uint32(*id)
 }
 
-type appStateKv struct {
-	AppID      string `mapstructure:"appid"`
-	Name       string `mapstructure:"name"`
-	InstallDir string `mapstructure:"installdir"`
-	Size       string `mapstructure:"SizeOnDisk"`
+// Uint32 returns the id as uint64.
+func (id *AppID) Uint64() uint64 {
+	return uint64(*id)
 }
 
-func appManifestFromKv(path string, kv *appManifestKv) (*AppManifest, error) {
-	appID, err := strconv.ParseUint(kv.State.AppID, 10, 64)
+// String implements interface `fmt.Stringer`.
+//
+// It returns the id formatted as string using base 10.
+func (id *AppID) String() string {
+	return strconv.FormatUint(id.Uint64(), 10)
+}
+
+// MarshalBinary implements interface `encoding.BinaryMarshaler`.
+//
+// It assumes little endianness.
+//
+// Returns `*AppIDMarshalBinaryError` on error.
+func (id *AppID) MarshalBinary() ([]byte, error) {
+	data, err := binary.Append(nil, binary.LittleEndian, id)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse AppManifest field `AppID` (%q): %w", kv.State.AppID, err)
+		return nil, &AppIDMarshalBinaryError{value: *id, err: err}
 	}
 
-	size, err := strconv.ParseUint(kv.State.Size, 10, 64)
+	return data, nil
+}
+
+// UnmarshalBinary implements interface `encoding.BinaryUnmarshaler`.
+//
+// It assumes little endianness.
+//
+// Returns `*AppIDUnmarshalBinaryError` on error.
+func (id *AppID) UnmarshalBinary(data []byte) error {
+	_, err := binary.Decode(data, binary.LittleEndian, id)
 
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse AppManifest field `Size` (%q): %w", kv.State.Size, err)
+		return &AppIDUnmarshalBinaryError{value: data, err: err}
 	}
 
-	folderDir := filepath.Dir(path)
-	absInstallDir := filepath.Join(folderDir, appRelInstallDirFromFolder, kv.State.InstallDir)
+	return nil
+}
 
-	manifest := &AppManifest{
-		AppID:         appID,
-		Name:          kv.State.Name,
-		InstallDir:    kv.State.InstallDir,
-		AbsInstallDir: absInstallDir,
-		Size:          size,
+// MarshalText implements interface `encoding.TextMarshaler`.
+//
+// It uses base 10.
+//
+// Returns `*AppIDMarshalTextError` on error.
+func (id *AppID) MarshalText() ([]byte, error) {
+	return []byte(id.String()), nil
+}
+
+// UnmarshalText implements interface `encoding.TextUnmarshaler`.
+//
+// It assumes base 10.
+//
+// Returns `*AppIDUnmarshalTextError` on error.
+func (id *AppID) UnmarshalText(data []byte) error {
+	n, err := ParseAppID(string(data))
+
+	if err != nil {
+		return &AppIDUnmarshalTextError{value: data, err: err}
 	}
 
-	return manifest, nil
+	*id = n
+
+	return nil
+}
+
+// MarshalJSON implements interface `encoding/json.Marshaler`
+//
+// It assumes base 10.
+//
+// Returns `*AppIDMarshalJSONError` on error.
+func (id *AppID) MarshalJSON() ([]byte, error) {
+	data, err := id.MarshalText()
+
+	if err != nil {
+		return nil, &AppIDMarshalJSONError{value: *id, err: err}
+	}
+
+	return data, nil
+}
+
+// UnmarshalJSON implements interface `encoding/json.Unmarshaler`
+//
+// It assumes base 10.
+//
+// Returns `*AppIDUnmarshalJSONError` on error.
+func (id *AppID) UnmarshalJSON(data []byte) error {
+	if err := id.UnmarshalText(data); err != nil {
+		return &AppIDUnmarshalJSONError{value: data, err: err}
+	}
+
+	return nil
 }

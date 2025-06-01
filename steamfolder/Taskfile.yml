@@ -2,9 +2,6 @@
 
 version: "3"
 
-vars:
-  MOD: steamlib
-
 tasks:
   default:
     desc: Run all tasks

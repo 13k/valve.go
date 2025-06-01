@@ -1,8 +1,10 @@
-package steamlib
+package steamfolder
 
 import (
 	"fmt"
 	"path/filepath"
+
+	"github.com/13k/valve.go/steamlib"
 )
 
 //nolint:gochecknoglobals
@@ -15,7 +17,7 @@ type Library struct {
 	// List of library folders
 	Folders []*LibraryFolder
 
-	apps map[AppID]*LibraryFolder
+	apps map[steamlib.AppID]*LibraryFolder
 }
 
 // NewLibrary parses a Library found in a given `steamDir` directory.
@@ -38,7 +40,7 @@ func ParseLibrary(path string) (*Library, error) {
 // the app was found and the parsed manifest.
 //
 // It returns `(nil, nil, nil)` if the given `appID` was not found.
-func (l *Library) FindApp(appID AppID) (*LibraryFolder, *AppManifest, error) {
+func (l *Library) FindApp(appID steamlib.AppID) (*LibraryFolder, *AppManifest, error) {
 	folder, ok := l.apps[appID]
 
 	if !ok {
@@ -66,7 +68,7 @@ func libraryFromKv(kv *libraryKv) (*Library, error) {
 	}
 
 	folders := make([]*LibraryFolder, len(kvFolders))
-	apps := make(map[AppID]*LibraryFolder)
+	apps := make(map[steamlib.AppID]*LibraryFolder)
 
 	for i, kvFolder := range kvFolders {
 		folder, err := libraryFolderFromKv(&kvFolder)

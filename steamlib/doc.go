@@ -1,5 +1,2 @@
-// Package steamlib is a library to work with a local Steam installation.
-//
-// It provides types and functions to locate Steam, parse its library and library folders, list and
-// find apps.
+// Package steamlib provides common functionality to work with Valve's various products.
 package steamlib

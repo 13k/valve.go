@@ -1,6 +1,6 @@
 //go:build linux
 
-package steamlib
+package steamfolder
 
 import (
 	"errors"

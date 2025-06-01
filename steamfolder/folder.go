@@ -1,9 +1,11 @@
-package steamlib
+package steamfolder
 
 import (
 	"fmt"
 	"slices"
 	"strconv"
+
+	"github.com/13k/valve.go/steamlib"
 )
 
 // LibraryFolder represents a library folder entry in a `libraryfolders.vdf` file.
@@ -15,18 +17,18 @@ type LibraryFolder struct {
 	// Total size (in bytes)
 	TotalSize uint64
 	// List of app IDs (sorted)
-	Apps []AppID
+	Apps []steamlib.AppID
 }
 
 // ContainsApp returns true if this LibraryFolder contains the given `appID`.
-func (f *LibraryFolder) ContainsApp(appID AppID) bool {
+func (f *LibraryFolder) ContainsApp(appID steamlib.AppID) bool {
 	_, contains := slices.BinarySearch(f.Apps, appID)
 
 	return contains
 }
 
 // ParseAppManifest parses the AppManifest for the given `appID`.
-func (f *LibraryFolder) ParseAppManifest(appID AppID) (*AppManifest, error) {
+func (f *LibraryFolder) ParseAppManifest(appID steamlib.AppID) (*AppManifest, error) {
 	return NewAppManifest(f, appID)
 }
 
@@ -44,10 +46,10 @@ func libraryFolderFromKv(kv *libraryFolderKv) (*LibraryFolder, error) {
 		return nil, fmt.Errorf("failed to parse LibraryFolder field `TotalSize` (%q): %w", kv.TotalSize, err)
 	}
 
-	apps := make([]AppID, 0, len(kv.Apps))
+	apps := make([]steamlib.AppID, 0, len(kv.Apps))
 
 	for s := range kv.Apps {
-		appID, err := strconv.ParseUint(s, 10, 64)
+		appID, err := steamlib.ParseAppID(s)
 
 		if err != nil {
 			return nil, fmt.Errorf("failed to parse LibraryFolder field `Apps` (%q): %w", s, err)

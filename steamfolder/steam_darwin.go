@@ -1,8 +1,8 @@
 //go:build darwin
 
-package steamlib
+package steamfolder
 
 func findSteam() (*Steam, error) {
 	// TODO: implement
-	return nil, nil
+	panic("not implemented")
 }

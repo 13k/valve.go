@@ -1,4 +1,4 @@
-package steamlib
+package steamfolder
 
 import (
 	"errors"
